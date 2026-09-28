@@ -1,0 +1,1322 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FinLend self-service API",
+    "version": "1.0.0",
+    "description": "Customer-facing endpoints only, generated from the API's OpenAPI document. Do not edit by hand."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api/v1"
+    }
+  ],
+  "paths": {
+    "/customer/auth/register": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Start customer self-service registration.",
+        "description": "Public endpoint. Creates a pending customer and delivers a verification code.",
+        "operationId": "customerRegister",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification code dispatched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/auth/verify": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Verify a customer account with the delivered code.",
+        "description": "Public endpoint. Confirms the code and issues the first customer JWT.",
+        "operationId": "customerVerify",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AuthTokenResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid or expired code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/auth/resend-code": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Re-deliver the verification code.",
+        "operationId": "customerResendCode",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerResendCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Code resent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/auth/login": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Obtain a customer JWT.",
+        "description": "Public endpoint. Exchanges customer credentials for a bearer token.",
+        "operationId": "customerLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AuthTokenResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid credentials or inactive account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/auth/refresh": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Refresh an expiring customer JWT.",
+        "description": "Public endpoint. Exchanges a still-refreshable JWT (within the configured refresh window) for a new token. The previous token is blacklisted, so every refresh rotates the session.",
+        "operationId": "customerRefreshToken",
+        "responses": {
+          "200": {
+            "description": "New token issued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token missing, invalid, or expired.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/auth/logout": {
+      "post": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Blacklist the current customer JWT.",
+        "operationId": "customerLogout",
+        "responses": {
+          "200": {
+            "description": "Logged out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/me": {
+      "get": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Return the authenticated customer profile.",
+        "operationId": "customerMe",
+        "responses": {
+          "200": {
+            "description": "Current customer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/me/profile": {
+      "get": {
+        "tags": [
+          "Customer Authentication"
+        ],
+        "summary": "Update the authenticated customer profile.",
+        "operationId": "customerUpdateProfile",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/documents/receipts/{payment}": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Receipt for one of the customer's own payments.",
+        "description": "Send format=pdf (or Accept: application/pdf) for the document, otherwise receipt metadata is returned.",
+        "operationId": "customerOwnReceipt",
+        "responses": {
+          "200": {
+            "description": "Receipt PDF or metadata."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/documents/statement": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Statement of the customer's own account.",
+        "operationId": "customerOwnStatementDocument",
+        "responses": {
+          "200": {
+            "description": "Statement PDF or metadata."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/documents/invoices/{loan}": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Invoice for one of the customer's own loans.",
+        "operationId": "customerOwnInvoice",
+        "responses": {
+          "200": {
+            "description": "Invoice PDF or metadata."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/documents": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "List the documents the customer has uploaded.",
+        "operationId": "customerOwnDocuments",
+        "responses": {
+          "200": {
+            "description": "Documents.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Upload one of your own documents.",
+        "description": "Uploads land as pending so staff can verify them. Accepts PDF, JPG, PNG or WEBP up to 8 MB.",
+        "operationId": "customerUploadDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCustomerOwnDocumentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Uploaded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/documents/{document}": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Download one of your own documents.",
+        "operationId": "customerDownloadDocument",
+        "responses": {
+          "200": {
+            "description": "The document file."
+          },
+          "403": {
+            "description": "Forbidden."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Remove one of your own documents.",
+        "description": "Only pending documents can be removed, so a verified document stays on the record.",
+        "operationId": "customerDeleteDocument",
+        "responses": {
+          "200": {
+            "description": "Removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The document has already been verified."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/me/password": {
+      "post": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Change your password.",
+        "description": "Requires the current password. Existing sessions are not revoked, so other devices stay signed in.",
+        "operationId": "customerChangePassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeCustomerPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error, including a wrong current password.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/products": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "List active loan products for the customer organization.",
+        "operationId": "customerListProducts",
+        "responses": {
+          "200": {
+            "description": "Available products.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/applications": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "List the authenticated customer application history.",
+        "operationId": "customerListApplications",
+        "responses": {
+          "200": {
+            "description": "Paginated applications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Submit an online loan application.",
+        "operationId": "customerSubmitApplication",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCustomerApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/applications/{application}": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Return a single application owned by the customer.",
+        "operationId": "customerShowApplication",
+        "responses": {
+          "200": {
+            "description": "Application detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not owned by caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/loans": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "List the authenticated customer loans.",
+        "operationId": "customerListLoans",
+        "responses": {
+          "200": {
+            "description": "Paginated loans.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/me/account": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "The signed-in customer's own account summary.",
+        "description": "Balance owed across every loan, the next instalment due, and totals. Everything derives from the customer's own ledger account, so it always agrees with the statement.",
+        "operationId": "customerAccountSummary",
+        "responses": {
+          "200": {
+            "description": "Account summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/me/statement": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "The signed-in customer's account statement with a running balance.",
+        "description": "Every movement on the customer's own ledger account in date order. A positive balance means the customer owes the organization.",
+        "operationId": "customerOwnStatement",
+        "responses": {
+          "200": {
+            "description": "Statement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/loans/{loan}": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Return a single loan owned by the customer.",
+        "operationId": "customerShowLoan",
+        "responses": {
+          "200": {
+            "description": "Loan detail.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not owned by caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/loans/{loan}/schedule": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Return the active repayment schedule for a customer loan.",
+        "operationId": "customerLoanSchedule",
+        "responses": {
+          "200": {
+            "description": "Active schedule with installments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not owned by caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/loans/{loan}/statement": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Return the ledger statement for a customer loan.",
+        "operationId": "customerLoanStatement",
+        "responses": {
+          "200": {
+            "description": "Statement transactions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not owned by caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/loans/{loan}/repayments": {
+      "post": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "Record an online loan repayment.",
+        "description": "Online repayment: settles via the gateway (or manual) then allocates immediately.",
+        "operationId": "customerStoreRepayment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCustomerRepaymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Repayment recorded and allocated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Loan closed or payment failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customer/payments": {
+      "get": {
+        "tags": [
+          "Self-Service"
+        ],
+        "summary": "List the authenticated customer payment history.",
+        "operationId": "customerListPayments",
+        "responses": {
+          "200": {
+            "description": "Paginated payments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "JWT bearer token issued by POST /api/v1/auth/login (staff) or /api/v1/customer/auth/login (customer).",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiEnvelope": {
+        "description": "Uniform success envelope.",
+        "properties": {
+          "data": {
+            "description": "Primary payload."
+          },
+          "meta": {
+            "description": "Pagination / extra metadata.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "message": {
+            "description": "Human readable message.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "description": "Correlation id for the request.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AuthTokenResponse": {
+        "description": "Successful authentication payload.",
+        "properties": {
+          "token": {
+            "description": "JWT bearer token.",
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "description": "Token lifetime in seconds.",
+            "type": "integer"
+          },
+          "user": {
+            "description": "Authenticated principal.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "ChangeCustomerPasswordRequest": {
+        "description": "Request body for `.POST /api/v1/customer/me/password`.",
+        "required": [
+          "current_password",
+          "password"
+        ],
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "password": {
+            "description": "must match the confirmation field",
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "type": "object"
+      },
+      "CustomerLoginRequest": {
+        "description": "Request body for `.POST /api/v1/customer/auth/login`.",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CustomerRegisterRequest": {
+        "description": "Request body for `.POST /api/v1/customer/auth/register`.",
+        "required": [
+          "first_name",
+          "last_name",
+          "email",
+          "phone",
+          "password",
+          "organization_code"
+        ],
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "organization_code": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "date_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "gender": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 10
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2
+          }
+        },
+        "type": "object"
+      },
+      "CustomerResendCodeRequest": {
+        "description": "Request body for `.POST /api/v1/customer/auth/resend-code`.",
+        "required": [
+          "customer_id"
+        ],
+        "properties": {
+          "customer_id": {
+            "description": "must reference an existing customers,id",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CustomerVerifyRequest": {
+        "description": "Request body for `.POST /api/v1/customer/auth/verify`.",
+        "required": [
+          "customer_id",
+          "code"
+        ],
+        "properties": {
+          "customer_id": {
+            "description": "must reference an existing customers,id",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "description": "Uniform error envelope.",
+        "properties": {
+          "error": {
+            "properties": {
+              "code": {
+                "description": "Stable machine code, e.g. VALIDATION_ERROR.",
+                "type": "string"
+              },
+              "message": {
+                "description": "Human readable message.",
+                "type": "string"
+              },
+              "details": {
+                "description": "Validation field errors or context.",
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "request_id": {
+                "description": "Correlation id for the request.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "StoreCustomerApplicationRequest": {
+        "description": "Request body for `.POST /api/v1/customer/applications`.",
+        "required": [
+          "loan_product_id",
+          "requested_amount",
+          "currency",
+          "requested_term_months"
+        ],
+        "properties": {
+          "loan_product_id": {
+            "description": "must reference an existing loan_products,id",
+            "type": "string"
+          },
+          "requested_amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3
+          },
+          "requested_term_months": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000
+          },
+          "monthly_income": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "monthly_expenses": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        "type": "object"
+      },
+      "StoreCustomerOwnDocumentRequest": {
+        "description": "Request body for `.POST /api/v1/customer/documents`.",
+        "required": [
+          "type",
+          "file"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "id_document",
+              "proof_of_address",
+              "payslip",
+              "bank_statement",
+              "other"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "maxLength": 8192
+          }
+        },
+        "type": "object"
+      },
+      "StoreCustomerRepaymentRequest": {
+        "description": "Request body for `.POST /api/v1/customer/loans/{loan}/repayments`.",
+        "required": [
+          "amount",
+          "currency",
+          "payment_method"
+        ],
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3
+          },
+          "payment_method": {},
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "external_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          }
+        },
+        "type": "object"
+      },
+      "UpdateCustomerProfileRequest": {
+        "description": "Request body for `.GET /api/v1/customer/me/profile`.",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "gender": {
+            "type": "string",
+            "maxLength": 10
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 2
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}
